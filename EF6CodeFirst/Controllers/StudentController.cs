@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using EF6CodeFirst.DAL;
 using EF6CodeFirst.Models;
+using PagedList;
 
 namespace EF6CodeFirst.Controllers
 {
@@ -16,12 +17,29 @@ namespace EF6CodeFirst.Controllers
         private SchoolContext db = new SchoolContext();
 
         // GET: Student
-        public ActionResult Index(string sortOrder)
+        public ViewResult Index(string sortOrder, string currentFilter, string searchString, int? page)
         {
+			ViewBag.CurrentSort = sortOrder;
 			ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
 			ViewBag.DateSortParm = sortOrder == "Date" ? "date_desc" : "Date";
+
+			if (searchString != null)
+			{
+				page = 1;
+			}
+			else
+			{
+				searchString = currentFilter;
+			}
+
+			ViewBag.CurrentFilter = searchString;
+
 			var students = from s in db.Students
 						   select s;
+			if (!string.IsNullOrEmpty(searchString))
+			{
+				students = students.Where(s => s.LastName.Contains(searchString) || s.FirstMidName.Contains(searchString));
+			}
 			switch (sortOrder)
 			{
 				case "name_desc":
@@ -38,7 +56,10 @@ namespace EF6CodeFirst.Controllers
 					break;
 
 			}
-            return View(students.ToList());
+
+			int pageSize = 3;
+			int pageNumber = (page ?? 1);
+            return View(students.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: Student/Details/5
