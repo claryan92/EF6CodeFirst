@@ -38,7 +38,7 @@ namespace EF6CodeFirst.Controllers
 					break;
 
 			}
-            return View(db.Students.ToList());
+            return View(students.ToList());
         }
 
         // GET: Student/Details/5
